@@ -1,5 +1,5 @@
-public class Stuffing {
-    private static String ZeroBitStuffing(String InfoString1) {
+public class ZeroBitStuffing {
+    private static String ZeroStuffing(String InfoString1) {
         StringBuilder newString = new StringBuilder();
         int one_cnt = 0, ist_cnt = 0;
         char[] infoChars = InfoString1.toCharArray();
@@ -42,7 +42,7 @@ public class Stuffing {
     public static void main(String[] args) {
         String InfoString = "000000111111111111111111000";
         System.out.println(InfoString);
-        String SendString = ZeroBitStuffing(InfoString);
+        String SendString = ZeroStuffing(InfoString);
         System.out.println("01100" + SendString);
         String ReceiveString = ZeroBitGetOriginalString("01100" + SendString);
         System.out.println(ReceiveString);
