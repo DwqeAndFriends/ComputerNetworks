@@ -77,9 +77,28 @@ function ZeroBitStuffing(String InfoString1) {
 函数输出：原始字符串开始结束位置
 
 ```C++
-function GetFlagIndex(String receivedString, String flagString) {
+function ZeroBitGetFlagIndex(String receivedString, String flagString) {
     int start_index = receivedString.findSubString(flagString, 0) + flagString.length;
     int end_index = receivedString.findSubString(flagString, start_index);
-    return start_index, end_index;    
+    return [start_index, end_index];    
 }
+```
+
+## 3. 获取原始字符串
+
+函数输入：接收到的字符串
+
+函数输出：原始字符串
+
+```C++
+    function ZeroBitGetOriginalString(String receivedString) {
+        int[] Index = ZeroBitGetFlagIndex(receivedString, "01111110");
+        String tmpString = receivedString.substring(Index[0], Index[1]);
+        int delIndex = tmpString.findSubString("11111", 0);    //获取子串开始索引
+        while(delIndex != -1) {
+            tmpString.deleteCharAt(delIndex + 5);    //删除指定元素
+            delIndex = tmpString.findSubString("11111", delIndex + 5);
+        }
+        return tmpString;
+    }
 ```
