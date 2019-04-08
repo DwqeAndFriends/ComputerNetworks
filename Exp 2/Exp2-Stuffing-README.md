@@ -74,43 +74,12 @@ function ZeroBitStuffing(String InfoString1) {
 
 函数输入：输入字符串，开始结束标记字符串
 
-函数输出：开始结束标记
+函数输出：原始字符串开始结束位置
 
 ```C++
 function GetFlagIndex(String receivedString, String flagString) {
-    int start_index = 0, end_index = 0;
-    int one_cnt = 0;
-    bool zeroFlag = false, oneFlag = false;
-    for(int i = 0; i < receivedString; i++) {
-        char ch = receivedString[i];
-        if(zeroFlag == false) {
-            if(ch == '0') {
-                zeroFlag = true;
-                start_index = i;
-            }
-        }
-        else if(oneFlag == false) {
-            if(ch == '1') {
-                oneflag =true;
-                one_cnt++;
-            }
-        }
-        else {
-            if(ch == '1') {
-                one_cnt++;
-                if(one_cnt == 6) {
-                    if(receivedString[i + 1] == '0') {
-                        end_index = i + 2;
-                        break;
-                    }
-                }
-            }
-            else {
-                oneFlag = false;
-                
-                one_cnt = 0;
-            }
-        }
-    }
+    int start_index = receivedString.findSubString(flagString, 0) + flagString.length;
+    int end_index = receivedString.findSubString(flagString, start_index);
+    return start_index, end_index;    
 }
 ```
