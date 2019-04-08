@@ -30,22 +30,21 @@ public class Stuffing {
     private static String ZeroBitGetOriginalString(String receivedString) {
         int[] Index = ZeroBitGetFlagIndex(receivedString, "01111110");
         String tmpString = receivedString.substring(Index[0], Index[1]);
-        System.out.println(tmpString);
         StringBuilder newString = new StringBuilder(tmpString);
-        int delIndex = newString.indexOf("11111");
+        int delIndex = newString.indexOf("11111", 0);
         while(delIndex != -1) {
             newString.deleteCharAt(delIndex + 5);
             delIndex = newString.indexOf("11111", delIndex + 5);
         }
         return newString.toString();
     }
-    
+
     public static void main(String[] args) {
         String InfoString = "000000111111111111111111000";
         System.out.println(InfoString);
         String SendString = ZeroBitStuffing(InfoString);
-        System.out.println(SendString);
-        String ReceiveString = ZeroBitGetOriginalString(SendString);
+        System.out.println("01100" + SendString);
+        String ReceiveString = ZeroBitGetOriginalString("01100" + SendString);
         System.out.println(ReceiveString);
     }
 }
