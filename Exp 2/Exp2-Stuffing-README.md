@@ -41,7 +41,7 @@ FlagString=7E
 
 ## 二、零比特填充实验过程
 
-### 1. 寻找连续5个1，在后面添加1个比特0
+### 1. 填充字符串（寻找连续5个1，在后面添加1个比特0）
 
 函数输入：待填充字符串
 
@@ -49,11 +49,67 @@ FlagString=7E
 
 ```C++
 function ZeroBitStuffing(String InfoString1) {
-    String newString = "";
+    String sentString = "01111110";
     int one_cnt = 0, ist_cnt = 0;
     for(int i = 0; i < InfoString1.length; i++) {
-        if(InfoString1[i] == '1') {
-            
+        char ch = InfoString1[i];
+        sentString.append(ch);
+        if(ch == '1') {
+            one_cnt++;
+            if(one_cnt == 5) {
+                sentString.append('0');
+                one_cnt = 0;
+                ist_cnt++;
+            }
+        }
+        else {
+            one_cnt = 0; 
+        }
+    }
+    return sentString + "01111110";    //拼接结束标记
+}
+```
+
+### 2. 获取开始结束标记在字符串中索引
+
+函数输入：输入字符串，开始结束标记字符串
+
+函数输出：开始结束标记
+
+```C++
+function GetFlagIndex(String receivedString, String flagString) {
+    int start_index = 0, end_index = 0;
+    int one_cnt = 0;
+    bool zeroFlag = false, oneFlag = false;
+    for(int i = 0; i < receivedString; i++) {
+        char ch = receivedString[i];
+        if(zeroFlag == false) {
+            if(ch == '0') {
+                zeroFlag = true;
+                start_index = i;
+            }
+        }
+        else if(oneFlag == false) {
+            if(ch == '1') {
+                oneflag =true;
+                one_cnt++;
+            }
+        }
+        else {
+            if(ch == '1') {
+                one_cnt++;
+                if(one_cnt == 6) {
+                    if(receivedString[i + 1] == '0') {
+                        end_index = i + 2;
+                        break;
+                    }
+                }
+            }
+            else {
+                oneFlag = false;
+                
+                one_cnt = 0;
+            }
         }
     }
 }

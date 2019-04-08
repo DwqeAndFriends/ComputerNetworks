@@ -135,7 +135,7 @@ function GetRemainder(String newString, String GenXString) {
 
 ```C++
 function GetSendString(String newString, long long mod) {
-    long long ins = String2LL(newString) + mod;
+    long long ins = String2LL(newString) ^ mod;
     String sendString = LL2String(ins);
     return sendString
 }
