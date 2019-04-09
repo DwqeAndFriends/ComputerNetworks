@@ -1,7 +1,7 @@
 public class ZeroBitStuffing {
     private static String ZeroStuffing(String InfoString1) {
         StringBuilder newString = new StringBuilder();
-        int one_cnt = 0, ist_cnt = 0;
+        int one_cnt = 0; //int ist_cnt = 0;
         char[] infoChars = InfoString1.toCharArray();
         for (char ch : infoChars) {
             newString.append(ch);
@@ -10,7 +10,7 @@ public class ZeroBitStuffing {
                 if (one_cnt == 5) {
                     newString.append('0');
                     one_cnt = 0;
-                    ist_cnt++;
+                    //ist_cnt++;
                 }
             }
             else {
