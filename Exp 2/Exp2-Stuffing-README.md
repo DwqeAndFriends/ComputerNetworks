@@ -91,14 +91,81 @@ function ZeroBitGetFlagIndex(String receivedString, String flagString) {
 函数输出：原始字符串
 
 ```C++
-    function ZeroBitGetOriginalString(String receivedString) {
-        int[] Index = ZeroBitGetFlagIndex(receivedString, "01111110");
-        String tmpString = receivedString.substring(Index[0], Index[1]);
-        int delIndex = tmpString.findSubString("11111", 0);    //获取子串开始索引
-        while(delIndex != -1) {
-            tmpString.deleteCharAt(delIndex + 5);    //删除指定元素
-            delIndex = tmpString.findSubString("11111", delIndex + 5);
-        }
-        return tmpString;
+function ZeroBitGetOriginalString(String receivedString) {
+    int[] Index = ZeroBitGetFlagIndex(receivedString, "01111110");
+    String tmpString = receivedString.substring(Index[0], Index[1]);
+    int delIndex = tmpString.findSubString("11111", 0);    //获取子串开始索引
+    while(delIndex != -1) {
+        tmpString.deleteCharAt(delIndex + 5);    //删除指定元素
+        delIndex = tmpString.findSubString("11111", delIndex + 5);
     }
+    return tmpString;
+}
+```
+
+## 三、字节填充实验过程
+
+### 1. 填充字节（添加开始结束标记；在原始字符串中的转义字符，开始结束标记前添加转义字符）
+
+函数输入：待填充字符串，开始结束标记，转义字符（串）
+
+函数输出：可发送字符串
+
+```C++
+function PPPByteStuffing(String InfoString1, String flagString, String ESC) {
+    String newString;
+    for (int i = 0; i < InfoString1.length; i++) {    //在原始字符串中添加转义字符
+        if(InfoString1[i] == flagString[0] && InfoString1[i + 1] == flagString.[1]) {    //开始结束标记前添加转义字符
+            newString.append(ESC);
+            newString.append(flagString);
+            ++i;
+        }
+        else if(InfoString1[i] == ESC[0] && InfoString1[i + 1] == ESC[0]) {    //转义字符前添加转义字符
+            newString.append(ESC);
+            newString.append(ESC);
+            ++i;
+        }
+        else {
+            newString.append(InfoString1[i]);
+        }
+    }
+    return flagString + newString + flagString;    //添加开始结束标记
+}
+```
+
+### 2. 去除填充，及开始结束标记
+
+函数输入：接收到的字符串，开始结束标记，转义字符（串）
+
+函数输出：原始字符串
+
+```C++
+ByteGetOriginalString(String receivedString, String flagString, String ESC) {
+    String originalString;
+    bool startFlag = false;
+    for(int i = 0; i < receivedString.length; i++) {
+        if(receivedString[i] == ESC[0] && receivedString[i + 1] == ESC[1]) {    //忽略转义字符
+            if(startFlag) {
+                originalString.append(receivedString[i + 2]);
+                originalString.append(receivedString[i + 3]);
+            }
+            i += 3;
+        }
+        else if(receivedString[i] == flagString[0] && receivedString[i + 1] == flagString[1]) {    //判断开始结束标记
+            if(!startFlag) {
+                startFlag = true;
+                ++i;
+            }
+            else {
+                break;
+            }
+        }
+        else {
+            if(startFlag) {
+                originalString.append(receivedString[i]);
+            }
+        }
+    }
+    return originalString;
+}
 ```
