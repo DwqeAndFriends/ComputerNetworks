@@ -4,7 +4,6 @@
 #include "stdafx.h"
 #include<iostream>
 #include<string>
-#include<sstream>
 #include<fstream>
 #include<bitset>
 #include<ctime>
@@ -34,6 +33,16 @@ string t(long long int a, int length)//translate a long to binary
 	return s;
 }
 
+string tobyte(string mem)
+{
+	string res;
+	for (int i = 0; i < mem.length(); i++)
+	{
+		res += t(mem[i], 8);
+	}
+	return res;
+}
+
 long long GetRemainder(string newString, string GenXString) {
 	int r = GenXString.length() - 1;
 	string subStr = newString.substr(0, r);
@@ -51,45 +60,48 @@ long long GetRemainder(string newString, string GenXString) {
 	return mod;
 }
 
-string GetSendString(string newString, long long mod) {
-	string sendString = newString + t(mod, 16);
-	cout << sendString << endl;
-	return sendString;
-}
-
-int main()
+string GetSendString(string InfoString1, string GenXString) //形成CRC
 {
-	string InfoString1, InfoString2, GenXString;
-	const int CRCLength = 16;//数值为GenXString.length()-1;
-	srand(time(0));
-	InfoString1 = "0110";
-	for (int i = 0; i < 25; i++)
-	{
-		InfoString1 += rand() % 2 + '0';
-	}
-	InfoString1 += "110";
-	GenXString = "10001000000100001";
-	cout << "Send" << endl;
-	cout << InfoString1 << endl;
-	cout << GenXString << endl;
 	string newString = InfoString1;
-	for (size_t i = 0; i < CRCLength; i++)
+	for (size_t i = 0; i < GenXString.length() - 1; i++)
 	{
 		newString += "0";
 	}
 	long long mod = GetRemainder(newString, GenXString);
-	cout << (bitset<CRCLength>)mod << endl;
-	string SendString = GetSendString(InfoString1, mod);
-	cout << "Receive" << endl;
-	cout << SendString << endl;
-	cout << (bitset<CRCLength>)mod << endl;
-	long long Mod = GetRemainder(SendString, GenXString);
-	cout << Mod << endl;
-	if (Mod == 0) {
-		cout << "Send Success" << endl;
+	string sendString = InfoString1 + t(mod, 16);
+	cout << sendString << endl;
+	return sendString;
+}
+
+bool isCRC(string InfoString2, string GenXString)//验证CRC正确
+{
+	long long mod = GetRemainder(InfoString2, GenXString);
+	if (mod == 0) {
+		return true;
 	}
 	else {
-		cout << "Send Fail" << endl;
+		return false;
+	}
+}
+
+int main()
+{
+	string InfoString1, GenXString;
+	const int CRCLength = 16;//数值为GenXString.length()-1;
+	InfoString1 = "Hello World";
+	GenXString = "10001000000100001";
+	cout << InfoString1 << endl;
+	string newString = tobyte(InfoString1);
+	string SendString = GetSendString(newString, GenXString);
+	cout << "Send " << SendString << endl;
+	cout <<"Receive "<< SendString << endl;
+	if (isCRC(SendString, GenXString))
+	{
+		cout << "Success" << endl;
+	}
+	else
+	{
+		cout << "Error" << endl;
 	}
 	system("pause");
 }
