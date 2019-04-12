@@ -1,4 +1,4 @@
-// ConsoleApplication1.cpp : ¶¨Òå¿ØÖÆÌ¨Ó¦ÓÃ³ÌÐòµÄÈë¿Úµã¡£
+// ConsoleApplication1.cpp : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¨Ó¦ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµã¡£
 //
 
 #include "stdafx.h"
@@ -60,7 +60,7 @@ string GetSendString(string newString, long long mod) {
 int main()
 {
 	string InfoString1, InfoString2, GenXString;
-	const int CRCLength = 16;//ÊýÖµÎªGenXString.length()-1;
+	const int CRCLength = 16;//ï¿½ï¿½ÖµÎªGenXString.length()-1;
 	srand(time(0));
 	InfoString1 = "0110";
 	for (int i = 0; i < 25; i++)
