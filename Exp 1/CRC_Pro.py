@@ -5,7 +5,6 @@ def GetRemainder(newString, GenXString):
     r = len(GenXString) - 1
     SubString = newString[0:r]
     mod = int(SubString, 2)
-    num = int(newString,2)
     divisor = int(GenXString, 2)
     for i in range(r,len(newString)):
         mod = mod * 2 + int(newString[i], 2)
