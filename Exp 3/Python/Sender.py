@@ -6,10 +6,8 @@ import random
 import time
 
 #N=1000
-LISTEN_PORT=8888
-origin_msg = ""
+#LISTEN_PORT=8888
 msg_queue=[]
-CRC_processed_msg = ""
 next_frame_to_send = 1 #下一个发送的帧编号
 status_flag = 0  #发送状态标志位
 msg_count = 0  #标记送到第几帧
@@ -60,10 +58,8 @@ def handle_returnMsg(msg):
         print("error occur during the send!")
 
 def make_error(msg):
-	new_string = ""
 	new_string = list(msg)
-	length = 48;
-	index = random.randint(0,47) 
+	index = random.randint(0,len(msg) - 1) 
 	if new_string[index] == '0':
 		new_string[index] = '1'
 	elif new_string[index] == '1':
@@ -83,8 +79,7 @@ GenXString = "10001000000100001"
 for i in range(send_times):
     msg_queue.append("")
     for j in range(32):
-        msg_queue[i] = msg_queue[i] + str(random.randint(0,1))
-   # msg_queue[i]=''.join(msg_queue[i])
+        msg_queue[i] += str(random.randint(0,1))
     print("msg", i, ": ", msg_queue[i])
 
 while True:
@@ -95,22 +90,17 @@ while True:
         print("connect",e)
 
 while True:
-    prepared_msg=[]
     if msg_count >= send_times or msg_queue[msg_count] == "":
         break
     else:
         origin_msg = msg_queue[msg_count]
     CRC_processed_msg = GetSendString(origin_msg, GenXString)
+    
     if random.randint(0,99)< 20:
         CRC_processed_msg = make_error(CRC_processed_msg)
         status_flag = 1
         print("message", msg_count, " is supposed to be error!")
-    prepared_msg.append(str(seq))
-    CRC_processed_msg = list(CRC_processed_msg)
-    for i in range(len(CRC_processed_msg)):
-        prepared_msg.append(CRC_processed_msg[i])
-    prepared_msg = ''.join(prepared_msg)
-    CRC_processed_msg = ''.join(CRC_processed_msg)
+    prepared_msg = str(seq) + CRC_processed_msg
     print(prepared_msg)
     if random.randint(0,99)< 20 and status_flag != 1:
         status_flag = 2
@@ -118,16 +108,12 @@ while True:
     else:
         if c.sendall(prepared_msg.encode()):
             printf("message", msg_count, " : send successfully!")
-    
-    recvData=""
     try:
-        a = c.recv(1024)#接收
-        recvData = a.decode()
-        recvData = list(recvData)
+        recvDatab = c.recv(1024)  #接收
+        recvData = recvDatab.decode()
         print("从接收端返回：",recvData[0])
         handle_returnMsg(recvData[0])
     except socket.timeout as e:
-        #print("ack",e)
         print("Package lost, resend temp package!")
     print("--------------------------------------------------------------\n")
     time.sleep(2)
