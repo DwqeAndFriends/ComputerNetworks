@@ -9,18 +9,35 @@ import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Random;
+
+
 
 public class Sender {
     private static final int myPort = 7777;
     private static final int hisPort = 8888;
-
+    public static byte[] makeError(byte[] a){
+        byte[] res=a;
+        Random r=new Random();
+        int index=r.nextInt(100)%res.length;
+        if(res[index]=='0')
+            res[index]='1';
+        else res[index]='0';
+    return res;
+    }
     public static void main(String[] args) throws Exception {
-        // write your code here
         Queue<String> network_data = new LinkedList<>();
-        for (int i = 0; i < 10; i++) {
-            network_data.offer("Message" + Integer.toString(i) + ": Hello!");
-        }
+        Random ra=new Random();
+        for(int i=0;i<10;i++){
+            char tem[]= new char[12];
+            for(int j=0;j<10;j++){
                 
+                tem[j]=(char) (ra.nextInt(2)); 
+            }
+            tem[10]='\0';
+            String t=new String(tem);
+            network_data.offer(t);
+        }        
         DatagramSocket datagramSocket = new DatagramSocket(myPort);
         DatagramPacket sendPacket;
         InetAddress inetAddress = InetAddress.getLocalHost();
@@ -30,7 +47,7 @@ public class Sender {
         byte[] s = new byte[35];
         next_frame_to_send = 0;
 
-        String buffer = network_data.poll();    //从网络层队列获取数据
+        String buffer = network_data.poll();    
 
         while (true) {
             if (buffer != null) {
@@ -41,16 +58,33 @@ public class Sender {
                 System.arraycopy(CRC_data, 0, s, 1, CRC_data.length);
             }
             s[0] = next_frame_to_send;
-            System.out.println(Arrays.toString(s));
-
-            sendPacket = new DatagramPacket(s, s.length, inetAddress, hisPort);    //发送数据
-            datagramSocket.send(sendPacket);
-
+            //System.out.println(Arrays.toString(s));
+            System.out.println("Current frame:"+s[0]);
+            boolean errflag=false;
+            if(ra.nextDouble()<0.2){
+                s=makeError(s);
+                errflag=true;
+            }
+            if(ra.nextDouble()<0.8){
+                
+                sendPacket = new DatagramPacket(s, s.length, inetAddress, hisPort);   
+                datagramSocket.send(sendPacket);
+                if(errflag==false) {
+                	System.out.println("Transmission correct");
+                }
+                else {
+                	System.out.println("Transmission error");
+                }
+            }
+            else{
+                System.out.println("Frame lost");
+            }
             byte[] ack = new byte[1];
             DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
-            datagramSocket.setSoTimeout(2000);    //设置等待时间
+            datagramSocket.setSoTimeout(2000);    
             try {
                 datagramSocket.receive(ackPacket);
+                System.out.println("Acknowledgement frame NO:"+ack[0]);
                 if (ack[0] == 1) {
                     if (network_data.size() == 0) {
                         break;
@@ -67,6 +101,8 @@ public class Sender {
             finally {
                 Thread.sleep(1998);
             }
+            System.out.println("next_frame_to_send:"+next_frame_to_send);
+            System.out.println("");
         }
 
         System.out.println("Sending finished");
