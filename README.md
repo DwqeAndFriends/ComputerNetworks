@@ -17,11 +17,7 @@
 
 ## 实验一、循环冗余校验CRC生成和校验程序
 
-[exp1]: ./Exp1/Exp1-CRC-README.md	"Exp1"
-
-sss
-
-
+ [Exp1](./Exp1/Exp1-CRC-README.md)
 
 ## 实验二、实现透明传输程序
 
