@@ -1,7 +1,9 @@
 package com.DwqeGroup.UDP;
 
 import com.DwqeGroup.CRC.CRC_Pro;
+import org.ini4j.Ini;
 
+import java.io.File;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -14,8 +16,10 @@ import java.util.Random;
 
 
 public class Sender {
-    private static final int myPort = 7777;
-    private static final int hisPort = 8888;
+    private static int myPort;
+    private static int hisPort;
+    private static int FilterError;
+    private static int FilterLost;
     public static byte[] makeError(byte[] a){
         byte[] res=a;
         Random r=new Random();
@@ -23,21 +27,27 @@ public class Sender {
         if(res[index]=='0')
             res[index]='1';
         else res[index]='0';
-    return res;
+        return res;
     }
     public static void main(String[] args) throws Exception {
+        Ini ini = new Ini(new File("./StayWait.ini"));
+        myPort = Integer.parseInt(ini.get("Port", "senderPort"));
+        hisPort = Integer.parseInt(ini.get("Port", "receiverPort"));
+        FilterError = Integer.parseInt(ini.get("Filter", "FilterError"));
+        FilterLost = Integer.parseInt(ini.get("Filter", "FilterLost"));
+
         Queue<String> network_data = new LinkedList<>();
         Random ra=new Random();
         for(int i=0;i<10;i++){
             char tem[]= new char[12];
             for(int j=0;j<10;j++){
-                
-                tem[j]=(char) (ra.nextInt(2)); 
+
+                tem[j]=(char) (ra.nextInt(2));
             }
             tem[10]='\0';
             String t=new String(tem);
             network_data.offer(t);
-        }        
+        }
         DatagramSocket datagramSocket = new DatagramSocket(myPort);
         DatagramPacket sendPacket;
         InetAddress inetAddress = InetAddress.getLocalHost();
@@ -47,7 +57,7 @@ public class Sender {
         byte[] s = new byte[35];
         next_frame_to_send = 0;
 
-        String buffer = network_data.poll();    
+        String buffer = network_data.poll();
 
         while (true) {
             if (buffer != null) {
@@ -66,14 +76,14 @@ public class Sender {
                 errflag=true;
             }
             if(ra.nextDouble()<0.8){
-                
-                sendPacket = new DatagramPacket(s, s.length, inetAddress, hisPort);   
+
+                sendPacket = new DatagramPacket(s, s.length, inetAddress, hisPort);
                 datagramSocket.send(sendPacket);
                 if(errflag==false) {
-                	System.out.println("Transmission correct");
+                    System.out.println("Transmission correct");
                 }
                 else {
-                	System.out.println("Transmission error");
+                    System.out.println("Transmission error");
                 }
             }
             else{
@@ -81,7 +91,7 @@ public class Sender {
             }
             byte[] ack = new byte[1];
             DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
-            datagramSocket.setSoTimeout(2000);    
+            datagramSocket.setSoTimeout(2000);
             try {
                 datagramSocket.receive(ackPacket);
                 System.out.println("Acknowledgement frame NO:"+ack[0]);
