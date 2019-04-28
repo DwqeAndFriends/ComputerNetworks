@@ -1,7 +1,8 @@
 from io import StringIO
 import numpy as np
+import configparser
 
-def ZeroBitStuffing(InfoString1):   
+def ZeroBitStuffing(InfoString1,flagString):   
     newString=""
     one_cnt = 0; 
     infoChars = list(InfoString1)
@@ -14,7 +15,7 @@ def ZeroBitStuffing(InfoString1):
                 one_cnt = 0
         else:
             one_cnt = 0
-    return "01111110" + newString + "01111110"
+    return flagString + newString + flagString
 
 def ZeroBitGetFlagIndex(receivedString,flagString):
     index=np.array([0,0])
@@ -22,8 +23,8 @@ def ZeroBitGetFlagIndex(receivedString,flagString):
     index[1] = receivedString.find(flagString, index[0])
     return index;
 
-def ZeroBitGetOriginalString(receivedString):
-    Index = ZeroBitGetFlagIndex(receivedString, "01111110")
+def ZeroBitGetOriginalString(receivedString,flagString):
+    Index = ZeroBitGetFlagIndex(receivedString, flagString)
     tmpString = receivedString[Index[0]:Index[1]]
     newString = tmpString
     delIndex = newString.find("11111", 0)
@@ -74,20 +75,35 @@ def ByteGetOriginalString(receivedString,flagString,ESC):
             i=i+1
     return originalString
 
-
-InfoString1 = "347D7E807E4//0AA7D"
-FlagString = "7E"
-ESC = "//"
-print(InfoString1)
-SendString1 = "2312//7E676AD" + PPPByteStuffing(InfoString1, FlagString, ESC)
-print(SendString1)
-OriginalString = ByteGetOriginalString(SendString1, FlagString, ESC)
-print(OriginalString)
-InfoString2 = "000000111111111111111111000"
-print(InfoString2)
-SendString2 = ZeroBitStuffing(InfoString2)
-print("01100" + SendString2)
-ReceiveString = ZeroBitGetOriginalString("01100" + SendString2)
-print(ReceiveString)
+config = configparser.ConfigParser()
+config.readfp(open('Stuffing.ini'))
+ByteInfoString1 = config.get("ByteStuffing","InfoString1")
+ByteFlagString = config.get("ByteStuffing","FlagString")
+ESC = config.get("ByteStuffing","ESC")
+print("字节填充: ")
+print("帧起始结束标志: ",ByteFlagString)
+print("转义字符ESC: ",ESC)
+print("待填充数据帧: ",ByteInfoString1)
+ByteSendString = PPPByteStuffing(ByteInfoString1, ByteFlagString, ESC)
+print("字节填充后发送帧: ",ByteSendString)
+ByteReceiveString = "2312FF7E676AD" + ByteSendString
+print("\n")
+print("包含其他字符的接收帧: ",ByteReceiveString)
+ByteOriginalString = ByteGetOriginalString(ByteReceiveString, ByteFlagString, ESC)
+print("接收帧字节删除后数据帧: ",ByteOriginalString)
+print("\n")
+print("-----------------------------------------------------------")
+print("\n")
+print("零比特填充: ")
+ZeroBitInfoString1 = config.get("ZeroBitStuffing","InfoString1")
+ZeroBitFlagString=config.get("ZeroBitStuffing","FlagString")
+print("帧起始结束标志: ",ZeroBitFlagString)
+print("待填充数据帧: ",ZeroBitInfoString1)
+ZeroBitSendString = ZeroBitStuffing(ZeroBitInfoString1, ZeroBitFlagString)
+print("零比特填充后数据帧: ",ZeroBitSendString)
+print("\n")
+ZeroBitReceiveString = "01100" + ZeroBitSendString
+print("包含其他比特的接收帧: ",ZeroBitReceiveString)
+ZeroBitOriginalString = ZeroBitGetOriginalString(ZeroBitReceiveString, ZeroBitFlagString)
+print("接收帧零比特删除后数据帧: ",ZeroBitOriginalString)
 input("Please Enter...")
-
