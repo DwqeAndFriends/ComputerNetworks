@@ -6,9 +6,7 @@
 #include<string>
 #include<time.h>
 #include <winsock2.h>
-#include <pthread.h>
 #include<Windows.h>
-#include<process.h>
 #include<iostream>
 #pragma comment(lib, "ws2_32.lib")  
 using namespace std;
@@ -21,6 +19,7 @@ string origin_msg = "";
 string CRC_processed_msg = "";
 char prepared_msg[100] ;
 char recv_msg[100];
+char char_seq;
 struct sockaddr_in server;
 int serverfd;
 int next_frame_to_send = 1;//下一个发送的帧编号

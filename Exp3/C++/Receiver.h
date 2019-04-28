@@ -10,6 +10,6 @@
 #pragma comment(lib, "ws2_32.lib")
 using namespace std;
 int expected_frame = 0;
-
+char expected_char;
 #endif
 
