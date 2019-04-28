@@ -40,16 +40,15 @@ def handle_msg(msg):
             expected_frame = 0
     return  return_msg
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 创建 socket 对象
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # 创建 socket 对象
 host = socket.gethostname()  # 获取本地主机名
 port = 12345  # 设置端口
 addr = (host, port)
-s.connect(addr)  # 绑定端口号
-print("bind succes!")
+s.sendto("bind success".encode(),addr)
 while True:
     recvDatab = s.recv(1024)
     #与sender连接已断开
-    if recvDatab == b'':
+    if recvDatab.decode() == "exit":
         break
     recvData = recvDatab.decode()
     print(recvData)
@@ -57,6 +56,6 @@ while True:
     return_msg = handle_msg(recvData)
     print("return_msg：", return_msg[0]);
     print("---------------------------------------------------")
-    s.sendall(return_msg.encode())
+    s.sendto(return_msg.encode(),addr)
 
 s.close()  # 关闭连接
