@@ -51,9 +51,6 @@ def handle_returnMsg(msg):
             next_frame_to_send = 0
         msg_count = msg_count + 1
         recv_flag = 0
-    #elif msg == '':
-        #重新发送
-        #print("Package lost, resend temp package!")
     elif msg == '2':
         print("error occur during the send!")
 
@@ -68,12 +65,11 @@ def make_error(msg):
 
 #创建连接
 socket.setdefaulttimeout(5)  #超时等待设置
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 创建 socket 对象
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # 创建 socket 对象
 host = socket.gethostname()  # 获取本地主机名
 port = 12345  # 设置端口
 addr = (host, port)  # 设置地址tuple
 s.bind(addr)  # 绑定端口
-s.listen(10)  # 等待客户端连接
 
 GenXString = "10001000000100001"
 for i in range(send_times):
@@ -84,7 +80,8 @@ for i in range(send_times):
 
 while True:
     try:
-        c,addr = s.accept()  # 接收客户端的连接
+        data,addr = s.recvfrom(1024);
+        print(data.decode()+"\n")
         break
     except socket.timeout as e:
         print("connect",e)
@@ -106,10 +103,10 @@ while True:
         status_flag = 2
         print("msg", msg_count, " is suppoesd to be lost.")
     else:
-        if c.sendall(prepared_msg.encode()):
-            printf("message", msg_count, " : send successfully!")
+        if s.sendto(prepared_msg.encode(),addr):
+            print("message", msg_count, " : send successfully!")
     try:
-        recvDatab = c.recv(1024)  #接收
+        recvDatab,addr = s.recvfrom(1024)  #接收
         recvData = recvDatab.decode()
         print("从接收端返回：",recvData[0])
         handle_returnMsg(recvData[0])
@@ -117,5 +114,6 @@ while True:
         print("Package lost, resend temp package!")
     print("--------------------------------------------------------------\n")
     time.sleep(2)
-    
-c.close()  # 关闭连接
+
+s.sendto("exit".encode(),addr)    
+s.close()  # 关闭连接
