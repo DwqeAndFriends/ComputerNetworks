@@ -53,11 +53,9 @@ string GetSendString(string InfoString1, string GenXString)
 	return sendString;
 }
 
-//��������ʧ�����޸�next_frame_to_send��seq��count����һ
 void handle_returnMsg(char msg)
 {
 	if ((msg - '0') == next_frame_to_send) {
-		//�ɹ����գ��޸����ֵ����ӡ������Ϣ
 		printf("receive success!\n");
 		if (next_frame_to_send == 0) {
 			seq = 0;
@@ -71,7 +69,6 @@ void handle_returnMsg(char msg)
 		recv_flag = 0;
 	}
 	else if (msg == NULL) {
-		//���·���
 		printf("Package lost, resend temp package!\n");
 	}
 	else if (msg == '2') {
@@ -99,7 +96,7 @@ int main()
 	char serverIP[20];
 	int timeout;
 	int listen_port;
-	//��config.ini�ж�д����
+	//read parameters from config.ini
 	GetPrivateProfileString("Network", "ServerIP", "", serverIP, 20, ".\\sender_config.ini");
 	timeout = GetPrivateProfileInt("Network", "timeout", 0, ".\\sender_config.ini");
 	listen_port = GetPrivateProfileInt("Network", "ListenPort", 0, ".\\sender_config.ini");
@@ -121,7 +118,7 @@ int main()
 	sin.sin_addr.S_un.S_addr = inet_addr(serverIP);
 	int len = sizeof(sin);
 
-	//���ճ�ʱ�ȴ�����
+	//set the receive timeout
 	struct timeval tv;
 	int ret;
 	tv.tv_sec = timeout * 1000;
@@ -133,7 +130,7 @@ int main()
 	}
 
 	string GenXString = "10001000000100001";
-	//������Ϣ����
+	//generate the msg queue
 	for (int i = 0; i < 20; i++) {
 		for (int j = 0; j < 31; j++) {
 			msg_queue[i] += rand() % 2 + '0';
@@ -166,7 +163,7 @@ int main()
 			prepared_msg[i] = CRC_processed_msg[i];
 		}
 		//cout << CRC_processed_msg << endl;
-		//�ٷ�֮��ʮ�ĸ��ʲ����ͣ���ʧ��
+		//not to send msg in a certain propability
 		if (rand() % 100 < 20 && status_flag != 1) {
 			status_flag = 2;
 			printf("msg %d is suppoesd to be lost.\n", msg_count);
@@ -180,7 +177,7 @@ int main()
 		char recvData[10];
 		memset(recvData, 0, sizeof(recvData));
 		int ret = recvfrom(sclient, recvData, 10, 0, (sockaddr *)&sin, &len);
-		printf("�ӽ��ն˷��أ�%c\n", recvData[0]);
+		printf("return_msg from receiver: %c\n", recvData[0]);
 		handle_returnMsg(recvData[0]);
 		printf("--------------------------------------------------------------\n");
 		Sleep(2000);
