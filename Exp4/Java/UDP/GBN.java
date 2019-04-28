@@ -1,10 +1,12 @@
-package UDP;
+package cn_experiment1_task4;
 
+import cn_experiment1_task4.CRC.*;
 import java.io.*;
 import java.net.*;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Random;
 
 public class GBN {
 
@@ -24,7 +26,25 @@ public class GBN {
     private static boolean time_out=false;
     private static long timelimit=2000;
     private static Queue<Timer> timer_queue = new LinkedList<>();
-
+    
+    public static byte[] makeError(byte[] a){
+        byte[] res=a;
+        Random r=new Random();
+        int index=r.nextInt(100)%res.length;
+        if(res[index]=='0')
+            res[index]='1';
+        else res[index]='0';
+    return res;
+    }
+    public static String CRCtransform(String num) {
+    	char[] bufferChars = num.toCharArray();
+        int remainder = CRC_Pro.CRC_Remainder(bufferChars);
+        char[] tmp = CRC_Pro.CRC_SendString(bufferChars, remainder);
+        byte[] CRC_data = CRC_Pro.CharsToBytes(tmp);
+        String re=new String(CRC_data);
+        return re;
+    }
+    static Random ran=new Random();
     private static class SendThread implements Runnable {
 
         @Override
@@ -43,17 +63,34 @@ public class GBN {
                     int tmpbuf=buffered;
                     int tmpack=ack_expected;
                     for(int i=0; i < tmpbuf; i++) {
-                        String data;
-                        data=datasend[tmpack+i]+"/"+(tmpack+i)+"/"+(frame_expected-1);
+                        String data;         
+                        //将数进行CRC处理
+                        boolean errflag=false;
+                        data=CRCtransform(datasend[tmpack+i])+"/"+(tmpack+i)+"/"+(frame_expected-1);
                         byte[] sendData=data.getBytes();
-
-                        DatagramPacket datagramPacketsend = new DatagramPacket(sendData,sendData.length,inetAddress,hisport);
-                        try {
-                            datagramSocket.send(datagramPacketsend);
+                        if(ran.nextDouble()<0.1) {
+                        	sendData=makeError(sendData);
+                        	errflag=true;
                         }
-                        catch (IOException e) {
-                            e.printStackTrace();
+                        if(ran.nextDouble()<0.9) {
+                        	DatagramPacket datagramPacketsend = new DatagramPacket(sendData,sendData.length,inetAddress,hisport);
+                        	try {
+                        		datagramSocket.send(datagramPacketsend);
+                        	}
+                        	catch (IOException e) {
+                        		e.printStackTrace();
+                        	}
+                        	if(errflag==false) {
+                        		System.out.println("Filter: Correct transmission.");
+                        	}
+                        	else {
+                        		System.out.println("Filter: Transmission error.");
+                        	}
                         }
+                        else {
+                        	System.out.println("Filter: Frame lost.");
+                        }
+                        
                         System.out.println("resend:"+data);
                         stop_timer(tmpack+i);
                         start_timer(tmpack+i);
@@ -69,27 +106,49 @@ public class GBN {
                             next_frame_send=7;
                         }
 
-                        if (next_frame_send == 5) {
+                        /*if (next_frame_send == 5) {
                             try {
                                 Thread.sleep(3000);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-                        }
+                        }*/
 
                         if(frame_expected==8&&ack_expected==8){
                             break;
                         }
-                        data=datasend[next_frame_send]+"/"+next_frame_send+"/"+(frame_expected-1);
+                        boolean errflag=false;
+                        data=CRCtransform(datasend[next_frame_send])+"/"+next_frame_send+"/"+(frame_expected-1);                      
                         byte[] sendData=data.getBytes();
-
-                        DatagramPacket datagramPacketsend = new DatagramPacket(sendData,sendData.length,inetAddress,hisport);
+                        if(ran.nextDouble()<0.1) {
+                        	sendData=makeError(sendData);
+                        	errflag=true;
+                        }
+                        if(ran.nextDouble()<0.9) {
+                        	DatagramPacket datagramPacketsend = new DatagramPacket(sendData,sendData.length,inetAddress,hisport);
+                        	try {
+                        		datagramSocket.send(datagramPacketsend);
+                        	}
+                        	catch (IOException e) {
+                        		e.printStackTrace();
+                        	}
+                        	if(errflag==false) {
+                        		System.out.println("Filter: Correct transmission.");
+                        	}
+                        	else {
+                        		System.out.println("Filter: Transmission error.");
+                        	}
+                        }
+                        else {
+                        	System.out.println("Filter: Frame lost.");
+                        }
+                        /*DatagramPacket datagramPacketsend = new DatagramPacket(sendData,sendData.length,inetAddress,hisport);
                         try {
                             datagramSocket.send(datagramPacketsend);
                         }
                         catch (IOException e) {
                             e.printStackTrace();
-                        }
+                        }*/
                         System.out.println("send:"+data);
                         start_timer(next_frame_send);
                         buffered++;
@@ -110,6 +169,7 @@ public class GBN {
                         continue;
                     }
                 }
+                System.out.println("");
             }
            System.out.println("sending finish");
         }
@@ -131,12 +191,16 @@ public class GBN {
                 catch (IOException e) {
                     e.printStackTrace();
                 }
+                System.out.println("datagramPacketreceive.getdata:"+datagramPacketreceive.getData());
                 String data=new String(datagramPacketreceive.getData());
 
                 System.out.println("receive:"+data);
 
                 String[] info=data.trim().split("/");
-                int receiveframe=Integer.parseInt(info[1]);
+                byte[] receivedata=info[0].getBytes();	//**********转化失败
+                System.out.println("info[0]:"+info[0]);  
+                System.out.println("receivedata:"+receivedata);
+                int receiveframe=Integer.parseInt(info[1]);           
                 int receiveack;
                 if(info[2]=="-1"){
                     receiveack=-1;
@@ -144,28 +208,31 @@ public class GBN {
                 else{
                     receiveack= Integer.parseInt(info[2]);
                 }
+                //CRC验证
+                int mod = CRC_Pro.CRC_Remainder(receivedata);
+                if(mod==0) {
+                	System.out.println("Received correct frame:"+receiveframe);
+                	if(receiveframe==frame_expected) {
+                		boolean crcflag=true;
+                		if(crcflag) {
+                			frame_expected++;
+                			// System.out.println("expect data");
+                    	}
+                	}
 
-                if(receiveframe==frame_expected) {
-                    boolean crcflag=true;
-                    if(crcflag) {
-                        frame_expected++;
-                       // System.out.println("expect data");
-                    }
-
-                }
-
-                if(receiveack>=ack_expected) {
-                    for(int i=ack_expected;i<=receiveack;i++) {
-                       // System.out.println(i+"comfirm\n");
-                        stop_timer(i);
-                        buffered--;
-
-                    }
-                    ack_expected=receiveack+1;
-                }
-                if(frame_expected==8&&ack_expected==8){
-                    break;
-                }
+                	if(receiveack>=ack_expected) {
+                		for(int i=ack_expected;i<=receiveack;i++) {
+                			// System.out.println(i+"comfirm\n");
+                			stop_timer(i);
+                			buffered--;
+                		}
+                		ack_expected=receiveack+1;
+                	}
+                	if(frame_expected==8&&ack_expected==8){
+                		break;
+                	}
+                }     
+                System.out.println("");
             }
             System.out.println("receiving finish");
         }
@@ -229,8 +296,10 @@ public class GBN {
 
     public static void main(String[] args) throws Exception {
         //Queue<Timer> timer_queue = new LinkedList<Timer>();
-        myport = 8888;
-        hisport = 7777;
+        //myport = 8888;
+        //hisport = 7777;
+        myport = 7777;
+        hisport = 8888;
         FilterError = FilterLost = 10;
         datagramSocket = new DatagramSocket(myport);
         inetAddress = InetAddress.getLocalHost();
@@ -238,7 +307,7 @@ public class GBN {
         new Thread(new TimerThread()).start();
         new Thread(new SendThread()).start();
         new Thread(new ReceiveThread()).start();
-    }
+     }
 }
 
 class Timer{
