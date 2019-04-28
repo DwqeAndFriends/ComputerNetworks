@@ -4,6 +4,7 @@ import socket
 import numpy as np
 import random
 import time
+import configparser
 
 #N=1000
 #LISTEN_PORT=8888
@@ -63,13 +64,22 @@ def make_error(msg):
 		new_string[index] = '0'
 	return ''.join(new_string)
 
+
+
+config = configparser.ConfigParser()
+config.readfp(open('StayWait.ini'))
+senderPort = int(config.get("Port", "senderPort"))
+receiverPort = int(config.get("Port", "receiverPort"))
+FilterError = int(config.get("Filter", "FilterError"))
+FilterLost = int(config.get("Filter", "FilterLost"))
+
 #创建连接
 socket.setdefaulttimeout(5)  #超时等待设置
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # 创建 socket 对象
 host = socket.gethostname()  # 获取本地主机名
-port = 12345  # 设置端口
-addr = (host, port)  # 设置地址tuple
-s.bind(addr)  # 绑定端口
+senderAddr = (host, senderPort)  # 设置地址tuple
+receiverAddr = (host, receiverPort)
+s.bind(senderAddr)  # 绑定端口
 
 GenXString = "10001000000100001"
 for i in range(send_times):
@@ -80,8 +90,8 @@ for i in range(send_times):
 
 while True:
     try:
-        data,addr = s.recvfrom(1024);
-        print(data.decode()+"\n")
+        data = s.recv(1024);
+        print(data.decode(),"\n")
         break
     except socket.timeout as e:
         print("connect",e)
@@ -103,10 +113,10 @@ while True:
         status_flag = 2
         print("msg", msg_count, " is suppoesd to be lost.")
     else:
-        if s.sendto(prepared_msg.encode(),addr):
+        if s.sendto(prepared_msg.encode(),receiverAddr):
             print("message", msg_count, " : send successfully!")
     try:
-        recvDatab,addr = s.recvfrom(1024)  #接收
+        recvDatab = s.recv(1024)  #接收
         recvData = recvDatab.decode()
         print("从接收端返回：",recvData[0])
         handle_returnMsg(recvData[0])
@@ -115,5 +125,5 @@ while True:
     print("--------------------------------------------------------------\n")
     time.sleep(2)
 
-s.sendto("exit".encode(),addr)    
+s.sendto("exit".encode(),receiverAddr)    
 s.close()  # 关闭连接
