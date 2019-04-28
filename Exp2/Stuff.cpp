@@ -1,11 +1,16 @@
-// Stuff.cpp : �������̨Ӧ�ó������ڵ㡣
+// Stuff.cpp : 定义控制台应用程序的入口点。
 //
 
-#include "stdafx.h"
-#include<string>
 #include<iostream>
+#include<string>
+#include<fstream>
+#include<bitset>
+#include<ctime>
+#include<windows.h>
+#include<comutil.h>
+#include<tchar.h>
 using namespace std;
-string FlagString = "01111110";
+string FlagString;
 string bitstuff(string InfoString1) {
 	string newString;
 	int count=0;
@@ -104,44 +109,55 @@ string bytedel(string InfoString1, string Flag, string ESC)
 
 int main()
 {
-	string send1="0110";
-	for (int i = 0; i < 6; i++)
-	{
-		send1 += rand() % 2 + '0';
-	}
-	send1 += "11111111111";
-	for (int i = 0; i < 8; i++)
-	{
-		send1+= rand() % 2 + '0';
-	}
-	send1 += "110";
-	cout << "bitstuff:" << endl;
-	cout << "Frame Start" << endl;
-	cout << FlagString << endl;
-	cout << "Frame" << endl;
-	cout << send1 << endl;
-	cout << "Frame End" << endl;
-	cout << FlagString << endl;
-	string stuff1 = bitstuff(FlagString+send1+FlagString);
-	cout << "After Frame stuff" << endl;
-	cout << stuff1 << endl;
-	string del1 = bitdel(stuff1);
-	cout << "After Frame delete" << endl;
-	cout << del1 << endl;
-	cout << endl;
-	cout << "bytestuff:" << endl;
-	string InfoString1 = "347D7E80//7E40AA7D";
-	string FlagString = "7E";
-	string ESC = "//";
-	cout << "Frame Start" << endl;
-	cout << FlagString << endl;
-	cout << "Frame" << endl;
-	cout << InfoString1 << endl;
-	cout << "Frame End" << endl;
-	cout << FlagString << endl;
+	string send1;
+	LPTSTR IpPath=new char[MAX_PATH];
+	strcpy(IpPath,".\\Stuffing.ini");
+	LPTSTR a=new char[100];
+	LPTSTR b=new char[100];
+	LPTSTR c=new char[100];
+	
+	
+	cout << "字节填充：" << endl;
+	string InfoString1;
+	//string FlagString;
+	string ESC;
+	GetPrivateProfileString("ByteStuffing","InfoString1","",a,100,IpPath);
+	GetPrivateProfileString("ByteStuffing","FlagString","",b,100,IpPath);
+	GetPrivateProfileString("ByteStuffing","ESC","",c,100,IpPath);
+	//cout<<a<<endl;
+	//cout<<b<<endl;
+	InfoString1=(string)(LPCTSTR)a;
+	FlagString=(string)(LPCTSTR)b;
+	ESC=(string)(LPCTSTR)c;
+	
+	cout << "帧起始结束标志：" << FlagString << endl;
+	cout << "转义字符ESC：" <<ESC<< endl;
+	cout << "待填充数据帧："<<InfoString1 << endl;
 	string sendstring2 = bytestuff(InfoString1, FlagString, ESC);
-	cout << sendstring2 << endl;
+	cout << "字节填充后发送帧：" << sendstring2 << endl<<endl;
+	cout<<"包含其它字符的接收帧："<<"2312FF"+sendstring2<<endl;
 	string recstring2 = bytedel(sendstring2, FlagString, ESC);
-	cout << recstring2 << endl;
-	system("pause");
+	cout << "接收帧字节删除后数据帧："<< recstring2 << endl<<endl;
+	
+	cout<<"---------------------------------------------------------------"<<endl<<endl;
+	
+	
+	GetPrivateProfileString("ZeroBitStuffing","InfoString1","",a,100,IpPath);
+	GetPrivateProfileString("ZeroBitStuffing","FlagString","",b,100,IpPath);
+	//cout<<a<<endl;
+	//cout<<b<<endl;
+	send1=(string)(LPCTSTR)a;
+	FlagString=(string)(LPCTSTR)b;
+	
+	cout << "零比特填充：" << endl;
+	cout << "帧起始结束标志：" <<FlagString<< endl;
+	cout << "待填充数据帧："<<send1 << endl;
+	//cout << "Frame End" << endl;
+	//cout << FlagString << endl;
+	string stuff1 = bitstuff(FlagString+send1+FlagString);
+	cout << "零比特填充后数据帧：" << stuff1 << endl<<endl;
+	cout<<"包含其它字符的接收帧："<<"01100"+stuff1<<endl;
+	string del1 = bitdel(stuff1);
+	cout << "接收帧零比特删除后数据帧：" << del1 << endl;
+	cout << endl;
 }
