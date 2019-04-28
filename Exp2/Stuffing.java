@@ -1,3 +1,10 @@
+package com.company;
+
+import org.ini4j.Ini;
+
+import java.io.File;
+import java.io.IOException;
+
 public class Stuffing {
     private static String PPPByteStuffing(String InfoString1, String flagString, String ESC) {
         StringBuilder newString = new StringBuilder();
@@ -50,7 +57,7 @@ public class Stuffing {
         return originalString.toString();
     }
 
-    private static String ZeroBitStuffing(String InfoString1) {
+    private static String ZeroBitStuffing(String InfoString1, String flagString) {
         StringBuilder newString = new StringBuilder();
         int one_cnt = 0; //int ist_cnt = 0;
         char[] infoChars = InfoString1.toCharArray();
@@ -68,7 +75,7 @@ public class Stuffing {
                 one_cnt = 0;
             }
         }
-        return "01111110" + newString.toString() + "01111110";
+        return flagString + newString.toString() + flagString;
     }
 
     private static int[] ZeroBitGetFlagIndex(String receivedString, String flagString) {
@@ -78,8 +85,8 @@ public class Stuffing {
         return index;
     }
 
-    private static String ZeroBitGetOriginalString(String receivedString) {
-        int[] Index = ZeroBitGetFlagIndex(receivedString, "01111110");
+    private static String ZeroBitGetOriginalString(String receivedString, String flagString) {
+        int[] Index = ZeroBitGetFlagIndex(receivedString, flagString);
         String tmpString = receivedString.substring(Index[0], Index[1]);
         StringBuilder newString = new StringBuilder(tmpString);
         int delIndex = newString.indexOf("11111", 0);
@@ -90,21 +97,47 @@ public class Stuffing {
         return newString.toString();
     }
 
-    public static void main(String[] args) {
-        String InfoString1 = "347D7E807E4//0AA7D";
-        String FlagString = "7E";
-        String ESC = "//";
-        System.out.println(InfoString1);
-        String SendString1 = "2312//7E676AD" + PPPByteStuffing(InfoString1, FlagString, ESC);
-        System.out.println(SendString1);
-        String OriginalString = ByteGetOriginalString(SendString, FlagString, ESC);
-        System.out.println(OriginalString);
+    public static void main(String[] args) throws IOException {
+        Ini ini = new Ini(new File("./Stuffing.ini"));
+        System.out.println("字节填充: ");
+        String ByteInfoString1 = ini.get("ByteStuffing", "InfoString1");
+        String ByteFlagString = ini.get("ByteStuffing", "FlagString");
+        String ESC = ini.get("ByteStuffing", "ESC");
+        System.out.print("帧起始结束标志: ");
+        System.out.println(ByteFlagString);
+        System.out.print("转义字符ESC: ");
+        System.out.println(ESC);
+        System.out.print("待填充数据帧: ");
+        System.out.println(ByteInfoString1);
+        String ByteSendString = PPPByteStuffing(ByteInfoString1, ByteFlagString, ESC);
+        System.out.print("字节填充后发送帧: ");
+        System.out.println(ByteSendString);
+        String ByteReceiveString = "2312FF7E676AD" + ByteSendString;
 
-        String InfoString2 = "000000111111111111111111000";
-        System.out.println(InfoString2);
-        String SendString2 = ZeroBitStuffing(InfoString2);
-        System.out.println("01100" + SendString2);
-        String ReceiveString = ZeroBitGetOriginalString("01100" + SendString);
-        System.out.println(ReceiveString);
+        System.out.print("\n包含其他字符的接收帧: ");
+        System.out.println(ByteReceiveString);
+        String ByteOriginalString = ByteGetOriginalString(ByteReceiveString, ByteFlagString, ESC);
+        System.out.print("接收帧字节删除后数据帧: ");
+        System.out.println(ByteOriginalString);
+
+        System.out.println("\n-----------------------------------------------------------\n");
+        System.out.println("零比特填充: ");
+        String ZeroBitInfoString1 = ini.get("ZeroBitStuffing", "InfoString1");
+        String ZeroBitFlagString = ini.get("ZeroBitStuffing", "FlagString");
+        System.out.print("帧起始结束标志: ");
+        System.out.println(ZeroBitFlagString);
+        System.out.print("待填充数据帧: ");
+        System.out.println(ZeroBitInfoString1);
+        String ZeroBitSendString = ZeroBitStuffing(ZeroBitInfoString1, ZeroBitFlagString);
+        System.out.print("零比特填充后数据帧: ");
+        System.out.println(ZeroBitSendString);
+
+
+        System.out.print("\n包含其他比特的接收帧: ");
+        String ZeroBitReceiveString = "01100" + ZeroBitSendString;
+        System.out.println(ZeroBitReceiveString);
+        String ZeroBitOriginalString = ZeroBitGetOriginalString(ZeroBitReceiveString, ZeroBitFlagString);
+        System.out.print("接收帧零比特删除后数据帧: ");
+        System.out.println(ZeroBitOriginalString);
     }
 }
