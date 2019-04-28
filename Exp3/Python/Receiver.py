@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import math
-import socket 
+import socket
+import configparser
 expected_frame = 0
 
 def GetRemainder(newString, GenXString):
@@ -40,11 +41,19 @@ def handle_msg(msg):
             expected_frame = 0
     return  return_msg
 
+
+
+config = configparser.ConfigParser()
+config.readfp(open('StayWait.ini'))
+senderPort = int(config.get("Port", "senderPort"))
+receiverPort = int(config.get("Port", "receiverPort"))
+
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # 创建 socket 对象
 host = socket.gethostname()  # 获取本地主机名
-port = 12345  # 设置端口
-addr = (host, port)
-s.sendto("bind success".encode(),addr)
+senderAddr = (host, senderPort)
+receiverAddr = (host, receiverPort)
+s.bind(receiverAddr)
+s.sendto("bind success".encode(),senderAddr)
 while True:
     recvDatab = s.recv(1024)
     #与sender连接已断开
@@ -56,6 +65,6 @@ while True:
     return_msg = handle_msg(recvData)
     print("return_msg：", return_msg[0]);
     print("---------------------------------------------------")
-    s.sendto(return_msg.encode(),addr)
+    s.sendto(return_msg.encode(),senderAddr)
 
 s.close()  # 关闭连接
