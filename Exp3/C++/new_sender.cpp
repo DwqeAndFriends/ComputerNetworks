@@ -53,11 +53,11 @@ string GetSendString(string InfoString1, string GenXString)
 	return sendString;
 }
 
-//Èô³ö´í»ò¶ªÊ§£¬Ôò²»ÐÞ¸Änext_frame_to_sendºÍseq£¬count²»¼ÓÒ»
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½next_frame_to_sendï¿½ï¿½seqï¿½ï¿½countï¿½ï¿½ï¿½ï¿½Ò»
 void handle_returnMsg(char msg)
 {
 	if ((msg - '0') == next_frame_to_send) {
-		//³É¹¦½ÓÊÕ£¬ÐÞ¸ÄÏà¹ØÖµ²¢´òÓ¡½ÓÊÜÐÅÏ¢
+		//ï¿½É¹ï¿½ï¿½ï¿½ï¿½Õ£ï¿½ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
 		printf("receive success!\n");
 		if (next_frame_to_send == 0) {
 			seq = 0;
@@ -71,7 +71,7 @@ void handle_returnMsg(char msg)
 		recv_flag = 0;
 	}
 	else if (msg == NULL) {
-		//ÖØÐÂ·¢ËÍ
+		//ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½
 		printf("Package lost, resend temp package!\n");
 	}
 	else if (msg == '2') {
@@ -99,7 +99,7 @@ int main()
 	char serverIP[20];
 	int timeout;
 	int listen_port;
-	//´Óconfig.iniÖÐ¶ÁÐ´²ÎÊý
+	//ï¿½ï¿½config.iniï¿½Ð¶ï¿½Ð´ï¿½ï¿½ï¿½ï¿½
 	GetPrivateProfileString("Network", "ServerIP", "", serverIP, 20, ".\\sender_config.ini");
 	timeout = GetPrivateProfileInt("Network", "timeout", 0, ".\\sender_config.ini");
 	listen_port = GetPrivateProfileInt("Network", "ListenPort", 0, ".\\sender_config.ini");
@@ -121,11 +121,11 @@ int main()
 	sin.sin_addr.S_un.S_addr = inet_addr(serverIP);
 	int len = sizeof(sin);
 
-	//½ÓÊÕ³¬Ê±µÈ´ýÉèÖÃ
+	//ï¿½ï¿½ï¿½Õ³ï¿½Ê±ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½
 	struct timeval tv;
 	int ret;
-	//tv.tv_sec = timeout * 1000;
-	tv.tv_sec = 5000;
+	tv.tv_sec = timeout * 1000;
+	//tv.tv_sec = 5000;
 	tv.tv_usec = 0;
 	if (setsockopt(sclient, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv)) < 0) {
 		printf("socket option  SO_RCVTIMEO not support\n");
@@ -133,8 +133,8 @@ int main()
 	}
 
 	string GenXString = "10001000000100001";
-	//Éú³ÉÏûÏ¢¶ÓÁÐ
-	for (int i = 0; i < 10; i++) {
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½
+	for (int i = 0; i < 20; i++) {
 		for (int j = 0; j < 31; j++) {
 			msg_queue[i] += rand() % 2 + '0';
 		}
@@ -166,7 +166,7 @@ int main()
 			prepared_msg[i] = CRC_processed_msg[i];
 		}
 		//cout << CRC_processed_msg << endl;
-		//°Ù·ÖÖ®¶þÊ®µÄ¸ÅÂÊ²»·¢ËÍ£¨¶ªÊ§£©
+		//ï¿½Ù·ï¿½Ö®ï¿½ï¿½Ê®ï¿½Ä¸ï¿½ï¿½Ê²ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½Ê§ï¿½ï¿½
 		if (rand() % 100 < 20 && status_flag != 1) {
 			status_flag = 2;
 			printf("msg %d is suppoesd to be lost.\n", msg_count);
@@ -180,7 +180,7 @@ int main()
 		char recvData[10];
 		memset(recvData, 0, sizeof(recvData));
 		int ret = recvfrom(sclient, recvData, 10, 0, (sockaddr *)&sin, &len);
-		printf("´Ó½ÓÊÕ¶Ë·µ»Ø£º%c\n", recvData[0]);
+		printf("ï¿½Ó½ï¿½ï¿½Õ¶Ë·ï¿½ï¿½Ø£ï¿½%c\n", recvData[0]);
 		handle_returnMsg(recvData[0]);
 		printf("--------------------------------------------------------------\n");
 		Sleep(2000);
