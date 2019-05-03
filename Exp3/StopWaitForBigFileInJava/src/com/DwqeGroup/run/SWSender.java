@@ -80,23 +80,23 @@ public class SWSender {
                 else  {
                     System.out.println("sending correct");
                 }
-                Thread.sleep(50);
+                Thread.sleep(100);
                 datagramSendPacket = new DatagramPacket(s, s.length, inetAddress, hisPort);
                 datagramSocket.send(datagramSendPacket);
             }
             if (i % FilterError == 0 && i != 0) {
                 errorFlag = false;
-                random.nextInt(FilterError);
+                errorNo = random.nextInt(FilterError);
             }
             if (i % FilterLost == 0 && i != 0) {
                 lostFlag = false;
-                random.nextInt(FilterLost);
+                lostNo = random.nextInt(FilterLost);
             }
 
             System.out.println("\nACK Receiving...");
             byte[] ack = new byte[1];
             datagramRACKPacket = new DatagramPacket(ack, ack.length);
-            datagramSocket.setSoTimeout(1000);
+            datagramSocket.setSoTimeout(2000);
             try {
                 datagramSocket.receive(datagramRACKPacket);
                 if (ack[0] == 1) {
