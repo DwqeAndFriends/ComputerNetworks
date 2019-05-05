@@ -1,4 +1,3 @@
-
 #!/usr/bin/python
 import threading
 import math
@@ -80,16 +79,17 @@ def SendThread(threadName):
     global max_seq
     global time_out
     global timelimit
-    global hisAddr,myAddr
+    global hisAddr,myAddr,s
 
     print("sending")
-    time.sleep(1)
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # 创建 socket 对象
-    s.bind(myAddr)
+    time.sleep(5)
+    #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # 创建 socket 对象
+    #s.bind(myAddr)
     
     while True:
+        printStr = "\n------sender-----\n"
         if time_out:
-            print("time_out!")
+            printStr = printStr + "timeout!\n"
             tmpbuf = buffered
             tmpack = ack_expected
             for i in range(0,tmpbuf):
@@ -102,17 +102,18 @@ def SendThread(threadName):
                     data = make_error(data)
                     errflag = True
                 sendData = data+"/"+str(tmpack+i)+"/"+str(frame_expected-1)
+                printStr = printStr + "ack_expected: " + str(ack_expected) + "\nnext_frame_to_send: " +  str(tmpack+i) + "\nframe_expected: " + str(frame_expected) + "\nack: " + str(frame_expected-1) + "\n"
                 
                 if random.randint(0,99)< 90:
                     s.sendto(sendData.encode(), hisAddr)
                     if errflag == False:
-                        print("Filter: Correct transmission.")
+                        printStr = printStr + "Filter: Correct transmission.\n"
                     else:
-                        print("Filter: Transmission error.")
+                        printStr = printStr + "Filter: Transmission error.\n"
                 else:
-                    print("Filter: Frame lost.")
+                    printStr = printStr + "Filter: Frame lost.\n"
 
-                print("resend: ",data)
+                printStr = printStr + "resend: " + data + "\n"
                 stop_timer(tmpack+i)
                 start_timer(tmpack+i)
             
@@ -120,27 +121,29 @@ def SendThread(threadName):
 
         else:
             if buffered < max_seq:
-                if next_frame_send > 7:
-                    next_frame_send = 7
-                if frame_expected == 8 and ack_expected == 8:
+                #if next_frame_send > 7:
+                #    next_frame_send = 7
+                #    break
+                if frame_expected == 8 and next_frame_send == 8:
                     break
                 errflag = False
                 data = GetSendString(datasend[next_frame_send],GenXString)
                 if random.randint(0,99)< 10:
                     data = make_error(data)
                     errflag = True
-                sendData = data+"/"+str(next_frame_send)+"/"+str(frame_expected-1)                
+                sendData = data+"/"+str(next_frame_send)+"/"+str(frame_expected-1)
+                printStr = printStr + "ack_expected: " + str(ack_expected) + "\nnext_frame_to_send: " +  str(next_frame_send) + "\nframe_expected: " + str(frame_expected) + "\nack: " + str(frame_expected-1) + "\n"
                 
                 if random.randint(0,99)< 90:
                     s.sendto(sendData.encode(), hisAddr)
                     if errflag == False:
-                        print("Filter: Correct transmission.")
+                        printStr = printStr + "Filter: Correct transmission.\n"
                     else:
-                        print("Filter: Transmission error.")
+                        printStr = printStr + "Filter: Transmission error.\n"
                 else:
-                    print("Filter: Frame lost.")
+                    printStr = printStr + "Filter: Frame lost.\n"
 
-                print("send: ",data)
+                printStr = printStr + "send: " + data + "\n"
                 start_timer(next_frame_send)
                 buffered = buffered + 1
                 next_frame_send = next_frame_send + 1
@@ -148,9 +151,9 @@ def SendThread(threadName):
             else:
                 time.sleep(2)
                 continue
-        print("")
+        print(printStr)
     print("sending finish")
-    s.close()
+    #s.close()
 
 def ReceiveThread(threadName):
     global BUFSIZE,GenXString
@@ -160,31 +163,31 @@ def ReceiveThread(threadName):
     global max_seq
     global time_out
     global timelimit
-    global hisAddr,myAddr
+    global hisAddr,myAddr,s
 
     print("receiving")
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # 创建 socket 对象
-    s.bind(hisAddr)
+    time.sleep(5)
+    #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # 创建 socket 对象
+    #s.bind(hisAddr)
 
     while True:
+        printStr = "\n-----receiver-----\n"
         dataPacketReceive = s.recv(BUFSIZE)
-        print("dataPacketReceive: ",dataPacketReceive)
         data = dataPacketReceive.decode()
-        print("receive: ",data)
         info = data.split("/")
         receivedata = info[0]
-        print("info[0]: ",info[0])
-        print("receivedata: ",receivedata)
         receiveframe = int(info[1])
         if info[2] == "-1":
             receiveack = -1
         else:
             receiveack = int(info[2])
+        printStr = printStr + "frame_expected: " + str(frame_expected) + "\n"
+        printStr = printStr + "Received ack: " + str(receiveack) + "\n"
 
         #CRC验证#
         mod = GetRemainder(receivedata,GenXString)
         if mod == 0:
-            print("Received correct frame: ",receiveframe)
+            printStr = printStr + "Received correct frame: " + str(receiveframe) + "\n"
             if receiveframe == frame_expected:
                 crcflag = True
                 if(crcflag):
@@ -195,10 +198,13 @@ def ReceiveThread(threadName):
                     buffered = buffered - 1
                 ack_expected = receiveack + 1
             if frame_expected == 8 and ack_expected == 8:
+                print(printStr)
                 break;
-        print("")
+        else:
+            printStr = printStr + "Received wrong frame: CRC error\n"
+        print(printStr)
     print("receiving finish")
-    s.close()
+    #s.close()
 
 def TimerThread(threadName):
     global time_out,timer_queue,a
@@ -229,7 +235,10 @@ FilterLost = int(config.get("Filter", "FilterLost"))
 host = socket.gethostname()  # 获取本地主机名
 myAddr = (host, myport)  # 设置地址tuple
 hisAddr = (host, hisport)
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # 创建 socket 对象
+s.bind(myAddr)
 
+print("Host1\n")
 t1 = threading.Thread(target=SendThread,args=('sender',))
 t2 = threading.Thread(target=ReceiveThread,args=('receiver',))
 t3 = threading.Thread(target=TimerThread,args=('timer',))
@@ -243,4 +252,5 @@ threads.append(t2)
 threads.append(t3)
 for t in threads:
     t.join()
+s.close()
 input("Please enter...")
