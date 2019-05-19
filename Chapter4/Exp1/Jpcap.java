@@ -15,7 +15,7 @@ import jpcap.packet.UDPPacket;
 
  
 
-public class Test {
+public class Jpcap {
 
 
 	
@@ -94,7 +94,7 @@ public class Test {
 					System.out.println("片偏移："+tcppacket.offset);
 					System.out.println("生存时间："+tcppacket.hop_limit);
 					System.out.println("源IP："+tcppacket.src_ip);
-					System.out.println("目的IP："+tcppacket.dst_ip);
+					System.out.println("目的IP："+tcppacket.dst_ip+"\n");
 					
 					System.out.println("运输层（TCP协议）");
 					System.out.println("源端口："+tcppacket.src_port);
@@ -128,7 +128,7 @@ public class Test {
 					System.out.println("片偏移："+udppacket.offset);
 					System.out.println("生存时间："+udppacket.hop_limit);
 					System.out.println("源IP："+udppacket.src_ip);
-					System.out.println("目的IP："+udppacket.dst_ip);
+					System.out.println("目的IP："+udppacket.dst_ip+"\n");
 					
 					System.out.println("运输层（UDP协议）");
 					System.out.println("源端口："+udppacket.src_port);
@@ -172,7 +172,7 @@ public class Test {
 			//}
 		}
 		//captor.setFilter("tcp", true);
-		captor.loopPacket(10, new PacketPrinter());
+		captor.loopPacket(1, new PacketPrinter());
 		captor.close();
 
 	}
