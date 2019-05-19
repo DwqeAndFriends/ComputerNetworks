@@ -17,8 +17,8 @@ import jpcap.packet.UDPPacket;
 
 public class Test {
 
- 
 
+	
 	public static void main(String[] args) throws IOException {
 
 		/*--------------	第一步绑定网络设备       --------------*/
@@ -44,30 +44,34 @@ public class Test {
 		  for (NetworkInterfaceAddress a : devices[i].addresses)
 		    System.out.println(" address:"+a.address + " " + a.subnet + " "+ a.broadcast);
 		}
-		int index=7;
+		int index=8;
 		JpcapCaptor captor=JpcapCaptor.openDevice(devices[index], 65535, false, 20);
+		
+		
 		class PacketPrinter implements PacketReceiver{
 			public void receivePacket(Packet packet) {
 				//String str=packet.toString();
 				if(packet instanceof jpcap.packet.ARPPacket) {
 					ARPPacket arppacket=(ARPPacket)packet;
 					System.out.println("--------------ARP包--------------");
+					System.out.println("链路层（以太网协议）");
 					System.out.println("捕获到的包长度："+arppacket.caplen);
-					//System.out.println("数据："+arppacket.data);
+					//System.out.println("数据："+data1);
 					System.out.println("以太帧报头："+arppacket.datalink);
 					//System.out.println("报头数据："+arppacket.header);
-					System.out.println("数据包长度："+arppacket.len);
-					System.out.println("时间戳（秒）："+arppacket.sec);
-					System.out.println("时间戳（微秒）："+arppacket.usec);
+					System.out.println("数据包长度："+arppacket.len+"\n");
+					//System.out.println("时间戳（秒）："+arppacket.sec);
+					//System.out.println("时间戳（微秒）："+arppacket.usec);
+					System.out.println("网络层（ARP协议）");
 					System.out.println("协议类型："+arppacket.prototype);
-					System.out.println("toString()方法："+arppacket.toString());
-					System.out.println("硬件："+arppacket.hardtype);
+					System.out.println("源及目的ip地址："+arppacket.toString());
+					System.out.println("硬件类型："+arppacket.hardtype);
 					System.out.println("硬件地址长度："+arppacket.hlen);
 					System.out.println("协议地址长度："+arppacket.plen);
 					System.out.println("操作字段："+arppacket.operation);
-					System.out.println("发送端以太地址："+arppacket.sender_hardaddr);
-					System.out.println("发送端IP地址："+arppacket.sender_protoaddr);
-					System.out.println("目的以太地址："+new String(arppacket.target_hardaddr));
+					//System.out.println("发送端以太地址："+arppacket.sender_hardaddr);
+					//System.out.println("发送端IP地址："+arppacket.sender_protoaddr);
+					//System.out.println("目的以太地址："+new String(arppacket.target_hardaddr));
 					System.out.println("--------------------------------");
 
 				}
@@ -76,14 +80,23 @@ public class Test {
 					//String str=new String(packet.header);
 					//System.out.println("硬件类型："+tcppacket.);
 					System.out.println("--------------TCP包--------------");
+					System.out.println("链路层（以太网协议）");
 					System.out.println("捕获到的包长度："+tcppacket.caplen);
-					//System.out.println("数据："+tcppacket.data);
+					//System.out.println("数据："+data1);
 					System.out.println("以太帧报头："+tcppacket.datalink);
-					//System.out.println("报头数据："+str);
-					System.out.println("数据包长度："+tcppacket.len);
-					System.out.println("时间戳（秒）："+tcppacket.sec);
-					System.out.println("时间戳（微秒）："+tcppacket.usec);
+					//System.out.println("报头数据："+arppacket.header);
+					System.out.println("数据包长度："+tcppacket.len+"\n");
 					
+					System.out.println("网络层（IP协议）");
+					System.out.println("版本：ipv"+tcppacket.protocol);
+					System.out.println("总长度："+tcppacket.length);
+					System.out.println("标识："+tcppacket.ident);
+					System.out.println("片偏移："+tcppacket.offset);
+					System.out.println("生存时间："+tcppacket.hop_limit);
+					System.out.println("源IP："+tcppacket.src_ip);
+					System.out.println("目的IP："+tcppacket.dst_ip);
+					
+					System.out.println("运输层（TCP协议）");
 					System.out.println("源端口："+tcppacket.src_port);
 					System.out.println("目的端口："+tcppacket.dst_port);
 					System.out.println("序号："+tcppacket.sequence);
@@ -95,27 +108,36 @@ public class Test {
 					System.out.println("FIN标志："+tcppacket.fin);
 					System.out.println("Windows大小："+tcppacket.window);
 					System.out.println("紧急指针："+tcppacket.urgent_pointer);
-					System.out.println("ToString方法："+tcppacket.toString());
+					System.out.println("源及目的ip地址："+tcppacket.toString());
 					System.out.println("---------------------------------");
 				}
 				else if(packet instanceof jpcap.packet.UDPPacket) {
 					UDPPacket udppacket=(UDPPacket)packet;
 					System.out.println("--------------UDP包--------------");
+					System.out.println("链路层（以太网协议）");
 					System.out.println("捕获到的包长度："+udppacket.caplen);
-					//System.out.println("数据："+tcppacket.data);
+					//System.out.println("数据："+data1);
 					System.out.println("以太帧报头："+udppacket.datalink);
-					//System.out.println("报头数据："+str);
-					System.out.println("数据包长度："+udppacket.len);
-					System.out.println("时间戳（秒）："+udppacket.sec);
-					System.out.println("时间戳（微秒）："+udppacket.usec);
+					//System.out.println("报头数据："+arppacket.header);
+					System.out.println("数据包长度："+udppacket.len+"\n");
 					
-					System.out.println("源端口："+udppacket);
-					System.out.println("目标端口："+udppacket);
-					System.out.println("UDP长度："+udppacket);
-					System.out.println("ToString方法："+udppacket);
+					System.out.println("网络层（IP协议）");
+					System.out.println("版本：ipv"+udppacket.protocol);
+					System.out.println("总长度："+udppacket.length);
+					System.out.println("标识："+udppacket.ident);
+					System.out.println("片偏移："+udppacket.offset);
+					System.out.println("生存时间："+udppacket.hop_limit);
+					System.out.println("源IP："+udppacket.src_ip);
+					System.out.println("目的IP："+udppacket.dst_ip);
+					
+					System.out.println("运输层（UDP协议）");
+					System.out.println("源端口："+udppacket.src_port);
+					System.out.println("目标端口："+udppacket.dst_port);
+					System.out.println("UDP长度："+udppacket.length);
+					System.out.println("源及目的ip地址："+udppacket.toString());
 					System.out.println("---------------------------------");
 				}
-				else if(packet instanceof jpcap.packet.IPPacket) {
+				/*else if(packet instanceof jpcap.packet.IPPacket) {
 					IPPacket ippacket=(IPPacket)packet;
 					System.out.println("--------------IP包--------------");
 					System.out.println("捕获到的包长度："+ippacket.caplen);
@@ -143,13 +165,13 @@ public class Test {
 					System.out.println("ToString方法："+ippacket.toString());
 					System.out.println("---------------------------------");
 
-				}
+				}*/
 			}
 			//public void receivePacket(EthernetPacket ethernetpacket) {
 				//System.out.println(ethernetpacket.toString());
 			//}
 		}
-		//captor.setFilter("ip", true);
+		//captor.setFilter("tcp", true);
 		captor.loopPacket(10, new PacketPrinter());
 		captor.close();
 
